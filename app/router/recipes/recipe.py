@@ -1,28 +1,26 @@
-from fastapi import status, HTTPException, APIRouter, BackgroundTasks
+from fastapi import status, HTTPException, APIRouter, BackgroundTasks, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from app.models.recipes.recipe import Recipe
 from uuid import uuid1
 import asyncio
-from datetime import datetime
-
+from app.background import audit_log_recipes
 fake_db = {}
 
 router = APIRouter()
 
 
+def create_recipe(recipe: Recipe):
+    recipe = {"title": recipe.title, "description": recipe.description, "preparation_time": recipe.preparation_time, "ingredients": recipe.ingredients}
+    
+    return recipe
+
 @router.get("/")
 def read_root():
     return JSONResponse(status_code=status.HTTP_200_OK, content=fake_db)
 
-def audit_log_recipes(recipe_id: str, message=""):
-    with open("C:/Users/breno/OneDrive/Documentos/Pyhton/Desenvolvimento de Sistemas Corporativos/Atividade de Fast-API 01/app/audit_log.txt", mode="a") as logfile:
-        content = f"\nrecipe {recipe_id} executed {message} at {datetime.now()}"
-        logfile.write(content)
-
-
 @router.get("/{recipe_id}/")
-def get_recipe(recipe_id: int):
+def get_recipe(recipe_id: str):
     if (recipe_id not in fake_db):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
@@ -53,17 +51,12 @@ def patch_recipe(recipe_id: str, recipe: Recipe, bg_task: BackgroundTasks):
 
 
 @router.post("/recipe/", status_code=status.HTTP_201_CREATED)
-def create_recipe(recipe: Recipe):
-
+def post_recipe(recipe: Recipe = Depends(create_recipe)):
+    
+    recipe_dict = jsonable_encoder(recipe)
     recipe_id = str(uuid1())
-    json_compatible_item_data = {
-        "id": str(uuid1()),
-        "title": recipe.title,
-        "description": recipe.description,
-        "preparation_time": recipe.preparation_time,
-        "Ingredients": recipe.Ingredients
-    }
-    fake_db[recipe_id] = json_compatible_item_data
+    recipe_dict["id"] = recipe_id
+    fake_db[recipe_id] = recipe_dict
 
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=fake_db[recipe_id])
 
