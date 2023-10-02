@@ -17,7 +17,7 @@ async def middleware(request: Request, call_next):
     cookies = request.cookies
     client = request.client
     
-    with open ("request_log.txt", mode="a") as request_file:
+    with open ("C:/Users/breno/OneDrive/Documentos/Pyhton/Desenvolvimento de Sistemas Corporativos/Atividade de Fast-API 01/app/request_log.txt", mode="a") as request_file:
         content = f"\nmethod: {method_name}, url: {url}, headers: {headers}, query_params: {query_params}, path_params: {path_params}, cookies: {cookies}, client: {client} received at {datetime.now()}"
         
         request_file.write(content)
