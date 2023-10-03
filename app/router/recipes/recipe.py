@@ -3,6 +3,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from app.models.recipes.recipe import Recipe
 from uuid import uuid1
+from typing import List
 import asyncio
 from app.background import audit_log_recipes
 fake_db = {}
@@ -10,10 +11,10 @@ fake_db = {}
 router = APIRouter()
 
 
-def create_recipe(recipe: Recipe):
-    recipe = {"title": recipe.title, "description": recipe.description, "preparation_time": recipe.preparation_time, "ingredients": recipe.ingredients}
+def create_recipe(title: str, description: str, preparation_time: str, ingredients: List[str]):
+    recipe = {"title": title, "description": description, "preparation_time": preparation_time, "ingredients": ingredients}
     
-    return recipe
+    return recipe"
 
 @router.get("/")
 def read_root():
