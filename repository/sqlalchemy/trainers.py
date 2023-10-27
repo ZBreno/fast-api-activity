@@ -9,7 +9,7 @@ class TrainersRepository:
         
     def insert_trainer(self, trainer: Profile_Trainers):
         try:
-            self.sess.add(Profile_Trainers)
+            self.sess.add(trainer)
             self.sess.commit()
         except:
             return False

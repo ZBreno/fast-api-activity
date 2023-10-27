@@ -9,7 +9,7 @@ class MembersRepository:
         
     def insert_member(self, member: Profile_Members):
         try:
-            self.sess.add(Profile_Members)
+            self.sess.add(member)
             self.sess.commit()
         except:
             return False
