@@ -1,6 +1,6 @@
 from cqrs.members.handlers import ICommandHandler
 from repository.sqlalchemy.members import MembersRepository
-from commands import ProfileMemberCommand
+from cqrs.members.commands import ProfileMemberCommand
 
 
 class UpdateProfileMemberCommandHandler(ICommandHandler):

@@ -1,6 +1,6 @@
 from cqrs.trainers.handlers import ICommandHandler
 from repository.sqlalchemy.trainers import TrainersRepository
-from commands import ProfileTrainerCommand
+from cqrs.trainers.commands import ProfileTrainerCommand
 
 
 class UpdateTrainerCommandHandler(ICommandHandler):

@@ -1,6 +1,5 @@
 from cqrs.trainers.handlers import ICommandHandler
 from repository.sqlalchemy.trainers import TrainersRepository
-from commands import ProfileTrainerCommand
 
 class DeleteTrainerCommandHandler(ICommandHandler):
     def __init__(self):

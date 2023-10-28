@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from sqlalchemy import Session
+from sqlalchemy.orm import Session
 from domain.data.sqlalchemy_models import Profile_Members
 
 class MembersRepository:
