@@ -1,12 +1,13 @@
-from handlers import ICommandHandler
+from cqrs.members.handlers import ICommandHandler
 from repository.sqlalchemy.members import MembersRepository
-from command import ProfileMemberCommand
+from commands import ProfileMemberCommand
+
 
 class UpdateProfileMemberCommandHandler(ICommandHandler):
     def __init__(self):
         self.repo: MembersRepository = MembersRepository()
-    
+
     def handle(self, command: ProfileMemberCommand):
-        result = self.repo.update_member(command.details)
-        
+        result = self.repo.update_member(command.details["id"], command.details)
+
         return result

@@ -1,8 +1,8 @@
-from handlers import ICommandHandler
+from cqrs.attendance.handlers import ICommandHandler
 from repository.sqlalchemy.attendance import AttendanceRepository
-from command import AttendanceCommand
+from cqrs.attendance.commands import AttendanceCommand
 
-class CreateAttendancerCommandHandler(ICommandHandler):
+class CreateAttendanceCommandHandler(ICommandHandler):
     def __init__(self):
         self.repo: AttendanceRepository = AttendanceRepository()
     

@@ -1,13 +1,18 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
-
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from db_config.sqlalchemy_connect import SessionFactory
 from domain.request.trainers import ProfileTrainersReq
 from domain.data.sqlalchemy_models import Profile_Trainers
 from repository.sqlalchemy.trainers import TrainersRepository
 from typing import List
-
+from cqrs.trainers.command.create_handlers import CreateTrainerCommandHandler
+from cqrs.trainers.command.update_handlers import UpdateTrainerCommandHandler
+from cqrs.trainers.command.delete_handlers import DeleteTrainerCommandHandler
+from cqrs.trainers.commands import ProfileTrainerCommand
+from cqrs.trainers.queries import ProfileTrainerListQuery
+from cqrs.trainers.query.query_handlers import ListTrainerQueryHandler
 router = APIRouter()
 
 
@@ -21,23 +26,30 @@ def sess_db():
 
 @router.post("trainer/", response_model=ProfileTrainersReq)
 def create_trainer(req: ProfileTrainersReq, sess: Session = Depends(sess_db)):
-    repo: TrainersRepository = TrainersRepository(sess)
-
-    trainer = Profile_Trainers(id=req.id, firstname=req.firstname,
-                             lastname=req.lastname, age=req.age, height=req.height, weight=req.weight, trainership_type=req.trainership_type, trainer_id=req.trainer_id, login=req.login, attendance=req.attendance, gclass=req.gclass)
-    result = repo.insert_trainer(trainer)
+    handler = CreateTrainerCommandHandler(sess)
+    trainer = req.model_dump()
+    
+    command = ProfileTrainerCommand()
+    command.details = trainer
+    
+    result = handler.handle(command)
 
     if result:
-        return JSONResponse(content=trainer, status_code=status.HTTP_201_CREATED)
+        return JSONResponse(content=jsonable_encoder(trainer), status_code=status.HTTP_201_CREATED)
     else:
         return JSONResponse(content={'message': 'create trainer problem encountered'}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @router.patch("trainer/{trainer_id}")
 def update_trainer(trainer_id: int, req: ProfileTrainersReq, sess: Session = Depends(sess_db)):
-    trainer_dict = req.dict(exclude_unset=True)
-    repo: TrainersRepository = TrainersRepository(sess)
-    result = repo.update_trainer(trainer_id, trainer_dict)
+    handler = UpdateTrainerCommandHandler(sess)
+    trainers = req.model_dump()
+    
+    trainers["id"] = trainer_id
+    command = ProfileTrainerCommand()
+    command.details = trainers
+    
+    result = handler.handle(command)
 
     if result:
         return JSONResponse(content={'message': 'trainer updated successfully'}, status_code=status.HTTP_201_CREATED)
@@ -47,8 +59,8 @@ def update_trainer(trainer_id: int, req: ProfileTrainersReq, sess: Session = Dep
 
 @router.delete("trainer/{trainer_id}")
 def delete_trainer(trainer_id: int, sess: Session = Depends(sess_db)):
-    repo: TrainersRepository = TrainersRepository(sess)
-    result = repo.delete_trainer(trainer_id)
+    handler = DeleteTrainerCommandHandler(sess)
+    result = handler.handle(trainer_id)
 
     if result:
         return JSONResponse(content={'message': 'trainer deleted successfully'}, status_code=status.HTTP_204_NO_CONTENT)
@@ -58,13 +70,15 @@ def delete_trainer(trainer_id: int, sess: Session = Depends(sess_db)):
 
 @router.get("trainer/", response_model=List[ProfileTrainersReq])
 def list_trainer(sess: Session = Depends(sess_db)):
-    repo: TrainersRepository = TrainersRepository(sess)
-    result = repo.get_all_trainer()
-    return JSONResponse(content=result, status_code=status.HTTP_200_OK)
+    handler = ListTrainerQueryHandler(sess)
+    query: ProfileTrainerListQuery = handler.handle_all()
+
+    return JSONResponse(content=jsonable_encoder(query.records), status_code=status.HTTP_200_OK)
 
 
 @router.get("trainer/{trainer_id}", response_model=ProfileTrainersReq)
 def list_trainer(trainer_id: int, sess: Session = Depends(sess_db)):
-    repo: TrainersRepository = TrainersRepository(sess)
-    result = repo.get_trainer(trainer_id)
-    return JSONResponse(content=result, status_code=status.HTTP_200_OK)
+    handler = ListTrainerQueryHandler(sess)
+    query: ProfileTrainerListQuery = handler.handle_one()
+
+    return JSONResponse(content=jsonable_encoder(query.records), status_code=status.HTTP_200_OK)

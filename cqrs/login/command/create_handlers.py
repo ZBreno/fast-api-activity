@@ -1,12 +1,12 @@
-from handlers import ICommandHandler
-from repository.sqlalchemy.trainers import TrainersRepository
-from command import ProfileTrainerCommand
+from cqrs.login.handlers import ICommandHandler
+from repository.sqlalchemy.login import LoginRepository
+from cqrs.login.commands import LoginCommand
 
-class CreateTrainerCommandHandler(ICommandHandler):
+class CreateLoginCommandHandler(ICommandHandler):
     def __init__(self):
-        self.repo: TrainersRepository = TrainersRepository()
+        self.repo: LoginRepository = LoginRepository()
     
-    def handle(self, command: ProfileTrainerCommand):
-        result = self.repo.insert_trainer(command.details)
+    def handle(self, command: LoginCommand):
+        result = self.repo.insert_login(command.details)
         
         return result

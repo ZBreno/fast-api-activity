@@ -1,6 +1,6 @@
-from handlers import ICommandHandler
+from cqrs.trainers.handlers import ICommandHandler
 from repository.sqlalchemy.trainers import TrainersRepository
-from command import ProfileTrainerCommand
+from commands import ProfileTrainerCommand
 
 class CreateTrainerCommandHandler(ICommandHandler):
     def __init__(self):

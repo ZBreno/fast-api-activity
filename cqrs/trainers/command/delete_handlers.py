@@ -1,12 +1,12 @@
-from handlers import ICommandHandler
+from cqrs.trainers.handlers import ICommandHandler
 from repository.sqlalchemy.trainers import TrainersRepository
-from command import ProfileTrainerCommand
+from commands import ProfileTrainerCommand
 
 class DeleteTrainerCommandHandler(ICommandHandler):
     def __init__(self):
         self.repo: TrainersRepository = TrainersRepository()
     
-    def handle(self, command: ProfileTrainerCommand):
-        result = self.repo.delete_trainer(command.details)
+    def handle(self, trainer_id: int):
+        result = self.repo.delete_trainer(trainer_id)
         
         return result

@@ -1,5 +1,5 @@
-from handlers import IQueryHandler
-from queries import ProfileTrainerListQuery
+from cqrs.trainers.handlers import IQueryHandler
+from cqrs.trainers.queries import ProfileTrainerListQuery
 from repository.sqlalchemy.trainers import TrainersRepository
 from typing import List
 

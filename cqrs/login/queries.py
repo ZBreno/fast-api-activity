@@ -1,9 +1,9 @@
 from typing import List
-from domain.data.sqlalchemy_models import Profile_Trainers
+from domain.data.sqlalchemy_models import Login
 
-class ProfileTrainerListQuery:
+class LoginListQuery:
     def __init__(self):
-        self._records: List[Profile_Trainers] = list()
+        self._records: List[Login] = list()
         
     @property
     def records(self):

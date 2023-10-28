@@ -1,8 +1,7 @@
-from handlers import IQueryHandler
-from queries import AttendanceListQuery
+from cqrs.attendance.handlers import IQueryHandler
+from cqrs.attendance.queries import AttendanceListQuery
 from repository.sqlalchemy.attendance import AttendanceRepository
 from typing import List
-
 class ListAttendanceQueryHandler(IQueryHandler):
     def __init__(self):
         self.repo: AttendanceRepository = AttendanceRepository()

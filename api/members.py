@@ -1,12 +1,16 @@
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
-
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from db_config.sqlalchemy_connect import SessionFactory
 from domain.request.members import ProfileMembersReq
-from domain.data.sqlalchemy_models import Profile_Members
-from repository.sqlalchemy.members import MembersRepository
 from typing import List
+from cqrs.members.command.create_handlers import CreateProfileMemberCommandHandler
+from cqrs.members.command.update_handlers import UpdateProfileMemberCommandHandler
+from cqrs.members.command.delete_handlers import DeleteProfileMemberCommandHandler
+from cqrs.members.commands import ProfileMemberCommand
+from cqrs.members.queries import ProfileMembersListQuery
+from cqrs.members.query.query_handlers import ListProfileMembersQueryHandler
 
 router = APIRouter()
 
@@ -21,23 +25,30 @@ def sess_db():
 
 @router.post("member/", response_model=ProfileMembersReq)
 def create_member(req: ProfileMembersReq, sess: Session = Depends(sess_db)):
-    repo: MembersRepository = MembersRepository(sess)
+    handler = CreateProfileMemberCommandHandler(sess)
+    member = req.model_dump()
 
-    member = Profile_Members(id=req.id, firstname=req.firstname,
-                             lastname=req.lastname, age=req.age, height=req.height, weight=req.weight, membership_type=req.membership_type, trainer_id=req.trainer_id, login=req.login, attendance=req.attendance, gclass=req.gclass)
-    result = repo.insert_member(member)
+    command = ProfileMemberCommand()
+    command.details = member
+
+    result = handler.handle(command)
 
     if result:
-        return JSONResponse(content=member, status_code=status.HTTP_201_CREATED)
+        return JSONResponse(content=jsonable_encoder(member), status_code=status.HTTP_201_CREATED)
     else:
         return JSONResponse(content={'message': 'create member problem encountered'}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @router.patch("member/{member_id}")
 def update_member(member_id: int, req: ProfileMembersReq, sess: Session = Depends(sess_db)):
-    member_dict = req.dict(exclude_unset=True)
-    repo: MembersRepository = MembersRepository(sess)
-    result = repo.update_member(member_id, member_dict)
+    handler = UpdateProfileMemberCommandHandler(sess)
+    member = req.model_dump()
+
+    member["id"] = member_id
+    command = ProfileMemberCommand()
+    command.details = member
+
+    result = handler.handle(command)
 
     if result:
         return JSONResponse(content={'message': 'member updated successfully'}, status_code=status.HTTP_201_CREATED)
@@ -47,8 +58,8 @@ def update_member(member_id: int, req: ProfileMembersReq, sess: Session = Depend
 
 @router.delete("member/{member_id}")
 def delete_member(member_id: int, sess: Session = Depends(sess_db)):
-    repo: MembersRepository = MembersRepository(sess)
-    result = repo.delete_member(member_id)
+    handler = DeleteProfileMemberCommandHandler(sess)
+    result = handler.handle(member_id)
 
     if result:
         return JSONResponse(content={'message': 'member deleted successfully'}, status_code=status.HTTP_204_NO_CONTENT)
@@ -58,13 +69,14 @@ def delete_member(member_id: int, sess: Session = Depends(sess_db)):
 
 @router.get("member/", response_model=List[ProfileMembersReq])
 def list_member(sess: Session = Depends(sess_db)):
-    repo: MembersRepository = MembersRepository(sess)
-    result = repo.get_all_member()
-    return JSONResponse(content=result, status_code=status.HTTP_200_OK)
+    handler = ListProfileMembersQueryHandler(sess)
+    query: ProfileMembersListQuery = handler.handle_all()
+    return JSONResponse(content=jsonable_encoder(query.records), status_code=status.HTTP_200_OK)
 
 
 @router.get("member/{member_id}", response_model=ProfileMembersReq)
 def list_member(member_id: int, sess: Session = Depends(sess_db)):
-    repo: MembersRepository = MembersRepository(sess)
-    result = repo.get_member(member_id)
-    return JSONResponse(content=result, status_code=status.HTTP_200_OK)
+    handler = ListProfileMembersQueryHandler(sess)
+    query: ProfileMembersListQuery = handler.handle_one(member_id)
+
+    return JSONResponse(content=jsonable_encoder(query.records), status_code=status.HTTP_200_OK)

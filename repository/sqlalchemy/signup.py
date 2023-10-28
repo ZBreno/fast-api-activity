@@ -11,12 +11,14 @@ class SignupRepository:
 
     def insert_signup(self, signup: Signup) -> bool:
         try:
-            self.sess.add(signup)
+            object_mapper = Signup(**signup)
+
+            self.sess.add(object_mapper)
             self.sess.commit()
-            print(signup.id)
         except:
             return False
         return True
+       
 
     def update_signup(self, id: int, details: Dict[str, Any]) -> bool:
         try:

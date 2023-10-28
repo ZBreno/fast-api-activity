@@ -1,12 +1,14 @@
-from handlers import ICommandHandler
-from repository.sqlalchemy.trainers import TrainersRepository
-from command import ProfileTrainerCommand
+from cqrs.signup.handlers import ICommandHandler
+from repository.sqlalchemy.signup import SignupRepository
+from cqrs.signup.commands import SignupCommand
+from sqlalchemy.orm import Session
 
-class UpdateTrainerCommandHandler(ICommandHandler):
-    def __init__(self):
-        self.repo: TrainersRepository = TrainersRepository()
-    
-    def handle(self, command: ProfileTrainerCommand):
-        result = self.repo.update_trainer(command.details)
-        
+
+class UpdateSignupCommandHandler(ICommandHandler):
+    def __init__(self, sess=Session):
+        self.repo: SignupRepository = SignupRepository(sess)
+
+    def handle(self, command: SignupCommand):
+        result = self.repo.update_signup(command.details["id"], command.details)
+
         return result

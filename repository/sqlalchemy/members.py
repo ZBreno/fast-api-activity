@@ -23,7 +23,7 @@ class MembersRepository:
             return False
         return True
 
-    def delete_attendance(self, id: int) -> bool:
+    def delete_member(self, id: int) -> bool:
         try:
             member = self.sess.query(Profile_Members).filter(Profile_Members.id == id).delete()
             self.sess.commit()
