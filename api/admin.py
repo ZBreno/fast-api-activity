@@ -11,7 +11,7 @@ from cqrs.signup.command.delete_handlers import DeleteSignupCommandHandler
 from cqrs.signup.query.query_handlers import ListSignupQueryHandler, SignupListQuery, ListLoginMembersQueryHandler, ListMemberAttendanceQueryHandler
 from cqrs.signup.commands import SignupCommand
 
-router = APIRouter(prefix='/signup', tags=['signup'])
+router = APIRouter(prefix='/signup', tags=['Signup'])
 
 
 def sess_db():

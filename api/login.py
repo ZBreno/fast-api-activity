@@ -11,7 +11,8 @@ from cqrs.login.commands import LoginCommand
 from cqrs.login.queries import LoginListQuery
 from cqrs.login.query.query_handlers import ListLoginQueryHandler
 
-router = APIRouter()
+router = APIRouter(prefix='/login', tags=['login'])
+
 
 
 def sess_db():
@@ -22,7 +23,7 @@ def sess_db():
         db.close()
 
 
-@router.post("/login/add")
+@router.post("/add")
 def add_login(req: LoginReq, sess: Session = Depends(sess_db)):
     handler = CreateLoginCommandHandler(sess)
     login = req.model_dump()
@@ -38,7 +39,7 @@ def add_login(req: LoginReq, sess: Session = Depends(sess_db)):
         return JSONResponse(content={'message': 'create login problem encountered'}, status_code=500)
 
 
-@router.patch("/login/update")
+@router.patch("/update")
 def update_login(id: int, req: LoginReq, sess: Session = Depends(sess_db)):
     handler = UpdateLoginCommandHandler(sess)
     login = req.model_dump(exclude_unset=True)
@@ -53,7 +54,7 @@ def update_login(id: int, req: LoginReq, sess: Session = Depends(sess_db)):
         return JSONResponse(content={'message': 'update login error'}, status_code=500)
 
 
-@router.delete("/login/delete/{id}")
+@router.delete("/delete/{id}")
 def delete_login(id: int, sess: Session = Depends(sess_db)):
     handler = DeleteLoginCommandHandler(sess)
     result = handler.handle(id)
@@ -63,7 +64,7 @@ def delete_login(id: int, sess: Session = Depends(sess_db)):
         return JSONResponse(content={'message': 'delete login error'}, status_code=500)
 
 
-@router.get("/login/list")
+@router.get("/list")
 def list_login(sess: Session = Depends(sess_db)):
     handler = ListLoginQueryHandler(sess)
     query: LoginListQuery = handler.handle_all()
@@ -71,9 +72,9 @@ def list_login(sess: Session = Depends(sess_db)):
     return JSONResponse(content=jsonable_encoder(query.records), status_code=status.HTTP_200_OK)
 
 
-@router.get("/login/get/{id}")
+@router.get("/get/{id}")
 def get_login(id: int, sess: Session = Depends(sess_db)):
     handler = ListLoginQueryHandler(sess)
-    query: LoginListQuery = handler.handle_one()
+    query: LoginListQuery = handler.handle_one(id)
 
     return JSONResponse(content=jsonable_encoder(query.records), status_code=status.HTTP_200_OK)

@@ -12,7 +12,8 @@ from cqrs.members.commands import ProfileMemberCommand
 from cqrs.members.queries import ProfileMembersListQuery
 from cqrs.members.query.query_handlers import ListProfileMembersQueryHandler
 
-router = APIRouter()
+router = APIRouter(prefix='/members', tags=['Members'])
+
 
 
 def sess_db():
@@ -23,7 +24,7 @@ def sess_db():
         db.close()
 
 
-@router.post("member/", response_model=ProfileMembersReq)
+@router.post("/add", response_model=ProfileMembersReq)
 def create_member(req: ProfileMembersReq, sess: Session = Depends(sess_db)):
     handler = CreateProfileMemberCommandHandler(sess)
     member = req.model_dump()
@@ -39,7 +40,7 @@ def create_member(req: ProfileMembersReq, sess: Session = Depends(sess_db)):
         return JSONResponse(content={'message': 'create member problem encountered'}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@router.patch("member/{member_id}")
+@router.patch("/update/{member_id}")
 def update_member(member_id: int, req: ProfileMembersReq, sess: Session = Depends(sess_db)):
     handler = UpdateProfileMemberCommandHandler(sess)
     member = req.model_dump()
@@ -56,7 +57,7 @@ def update_member(member_id: int, req: ProfileMembersReq, sess: Session = Depend
         return JSONResponse(content={'message': 'update profile error'}, status_code=500)
 
 
-@router.delete("member/{member_id}")
+@router.delete("/delete/{member_id}")
 def delete_member(member_id: int, sess: Session = Depends(sess_db)):
     handler = DeleteProfileMemberCommandHandler(sess)
     result = handler.handle(member_id)
@@ -67,14 +68,14 @@ def delete_member(member_id: int, sess: Session = Depends(sess_db)):
         return JSONResponse(content={'message': 'delete member error'}, status_code=500)
 
 
-@router.get("member/", response_model=List[ProfileMembersReq])
+@router.get("/list", response_model=List[ProfileMembersReq])
 def list_member(sess: Session = Depends(sess_db)):
     handler = ListProfileMembersQueryHandler(sess)
     query: ProfileMembersListQuery = handler.handle_all()
     return JSONResponse(content=jsonable_encoder(query.records), status_code=status.HTTP_200_OK)
 
 
-@router.get("member/{member_id}", response_model=ProfileMembersReq)
+@router.get("/member/{member_id}", response_model=ProfileMembersReq)
 def list_member(member_id: int, sess: Session = Depends(sess_db)):
     handler = ListProfileMembersQueryHandler(sess)
     query: ProfileMembersListQuery = handler.handle_one(member_id)

@@ -12,7 +12,8 @@ from cqrs.attendance.commands import AttendanceCommand
 from cqrs.attendance.queries import AttendanceListQuery
 from cqrs.attendance.query.query_handlers import ListAttendanceQueryHandler
 
-router = APIRouter()
+router = APIRouter(prefix='/attendance', tags=['Attendance'])
+
 
 
 def sess_db():
@@ -23,7 +24,7 @@ def sess_db():
         db.close()
 
 
-@router.post("attendance/", response_model=AttendanceMemberReq)
+@router.post("/add", response_model=AttendanceMemberReq)
 def create_attendance(req: AttendanceMemberReq, sess: Session = Depends(sess_db)):
     
     handler = CreateAttendanceCommandHandler(sess)
@@ -40,7 +41,7 @@ def create_attendance(req: AttendanceMemberReq, sess: Session = Depends(sess_db)
         return JSONResponse(content={'message': 'create attendance problem encountered'}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@router.patch("attendance/{attendance_id}")
+@router.patch("/update/{attendance_id}")
 def update_attendance(attendance_id: int, req: AttendanceMemberReq, sess: Session = Depends(sess_db)):
     handler = UpdateAttendanceCommandHandler(sess)
     attendance = req.model_dump()
@@ -57,7 +58,7 @@ def update_attendance(attendance_id: int, req: AttendanceMemberReq, sess: Sessio
         return JSONResponse(content={'message': 'update profile error'}, status_code=500)
 
 
-@router.delete("attendance/{attendance_id}")
+@router.delete("/delete/{attendance_id}")
 def delete_attendance(attendance_id: int, sess: Session = Depends(sess_db)):
     handler = DeleteAttendanceCommandHandler(sess)
     result = handler.handle(attendance_id)
@@ -67,7 +68,7 @@ def delete_attendance(attendance_id: int, sess: Session = Depends(sess_db)):
         return JSONResponse(content={'message': 'delete profile error'}, status_code=500)
 
 
-@router.get("attendance/", response_model=List[AttendanceMemberReq])
+@router.get("/list", response_model=List[AttendanceMemberReq])
 def list_attendance(sess: Session = Depends(sess_db)):
     handler = ListAttendanceQueryHandler(sess)
     query: AttendanceListQuery = handler.handle_all()
@@ -75,8 +76,8 @@ def list_attendance(sess: Session = Depends(sess_db)):
     return JSONResponse(content=jsonable_encoder(query.records), status_code=status.HTTP_200_OK)
 
 
-@router.get("attendance/{attendance_id}", response_model=AttendanceMemberReq)
-def list_attendance(attendance_id: int, sess: Session = Depends(sess_db)):
+@router.get("/attendance/{attendance_id}", response_model=AttendanceMemberReq)
+def get_attendance(attendance_id: int, sess: Session = Depends(sess_db)):
     handler = ListAttendanceQueryHandler(sess)
     query: AttendanceListQuery = handler.handle_one(attendance_id=attendance_id)
 

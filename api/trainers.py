@@ -13,8 +13,8 @@ from cqrs.trainers.command.delete_handlers import DeleteTrainerCommandHandler
 from cqrs.trainers.commands import ProfileTrainerCommand
 from cqrs.trainers.queries import ProfileTrainerListQuery
 from cqrs.trainers.query.query_handlers import ListTrainerQueryHandler
-router = APIRouter()
 
+router = APIRouter(prefix='/trainer', tags=['Trainer'])
 
 def sess_db():
     db = SessionFactory()
@@ -24,7 +24,7 @@ def sess_db():
         db.close()
 
 
-@router.post("trainer/", response_model=ProfileTrainersReq)
+@router.post("/add", response_model=ProfileTrainersReq)
 def create_trainer(req: ProfileTrainersReq, sess: Session = Depends(sess_db)):
     handler = CreateTrainerCommandHandler(sess)
     trainer = req.model_dump()
@@ -40,7 +40,7 @@ def create_trainer(req: ProfileTrainersReq, sess: Session = Depends(sess_db)):
         return JSONResponse(content={'message': 'create trainer problem encountered'}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@router.patch("trainer/{trainer_id}")
+@router.patch("/update/{trainer_id}")
 def update_trainer(trainer_id: int, req: ProfileTrainersReq, sess: Session = Depends(sess_db)):
     handler = UpdateTrainerCommandHandler(sess)
     trainers = req.model_dump()
@@ -57,7 +57,7 @@ def update_trainer(trainer_id: int, req: ProfileTrainersReq, sess: Session = Dep
         return JSONResponse(content={'message': 'update profile error'}, status_code=500)
 
 
-@router.delete("trainer/{trainer_id}")
+@router.delete("/delete/{trainer_id}")
 def delete_trainer(trainer_id: int, sess: Session = Depends(sess_db)):
     handler = DeleteTrainerCommandHandler(sess)
     result = handler.handle(trainer_id)
@@ -68,7 +68,7 @@ def delete_trainer(trainer_id: int, sess: Session = Depends(sess_db)):
         return JSONResponse(content={'message': 'delete trainer error'}, status_code=500)
 
 
-@router.get("trainer/", response_model=List[ProfileTrainersReq])
+@router.get("/list", response_model=List[ProfileTrainersReq])
 def list_trainer(sess: Session = Depends(sess_db)):
     handler = ListTrainerQueryHandler(sess)
     query: ProfileTrainerListQuery = handler.handle_all()
@@ -76,9 +76,9 @@ def list_trainer(sess: Session = Depends(sess_db)):
     return JSONResponse(content=jsonable_encoder(query.records), status_code=status.HTTP_200_OK)
 
 
-@router.get("trainer/{trainer_id}", response_model=ProfileTrainersReq)
+@router.get("/trainer/{trainer_id}", response_model=ProfileTrainersReq)
 def list_trainer(trainer_id: int, sess: Session = Depends(sess_db)):
     handler = ListTrainerQueryHandler(sess)
-    query: ProfileTrainerListQuery = handler.handle_one()
+    query: ProfileTrainerListQuery = handler.handle_one(trainer_id)
 
     return JSONResponse(content=jsonable_encoder(query.records), status_code=status.HTTP_200_OK)
